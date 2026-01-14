@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The First Spark - Consciousness Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00ff88;
+            --accent: #ff0055;
+            --dark-bg: #0a0e27;
+            --darker-bg: #050810;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, #1a1a3e 100%);
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 3em;
+            color: var(--primary);
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .tagline {
+            font-size: 1.1em;
+            color: #aaa;
+            font-style: italic;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px 25px;
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .tier-badge {
+            background: linear-gradient(135deg, var(--primary), #00cc6f);
+            color: black;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8em;
+        }
+
+        .logout-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #ff1a4d;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.5);
+        }
+
+        .auth-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .auth-box {
+            background: rgba(10, 14, 39, 0.95);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 50px;
+            text-align: center;
+            max-width: 400px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .auth-box h2 {
+            color: var(--primary);
+            margin-bottom: 30px;
+            font-size: 2em;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .auth-box input {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .auth-box input::placeholder {
+            color: rgba(0, 255, 136, 0.5);
+        }
+
+        .auth-box button {
+            padding: 12px 30px;
+            margin: 10px;
+            background: var(--primary);
+            color: black;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+
+        .auth-box button:hover {
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            transform: scale(1.05);
+        }
+
+        .toggle-auth {
+            color: #aaa;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        .toggle-auth span {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .tool-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInCard 0.6s ease-out;
+        }
+
+        @keyframes fadeInCard {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .tool-card:hover::before {
+            left: 100%;
+        }
+
+        .tool-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.3);
+            transform: translateY(-10px);
+        }
+
+        .tool-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .tool-card.locked:hover {
+            border-color: rgba(0, 255, 136, 0.3);
+            box-shadow: none;
+            transform: none;
+        }
+
+        .tool-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .tool-name {
+            font-size: 1.5em;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .tool-desc {
+            font-size: 0.95em;
+            color: #bbb;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .tool-tier {
+            display: inline-block;
+            background: rgba(255, 0, 85, 0.2);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-bottom: 15px;
+        }
+
+        .access-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: black;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+
+        .access-btn:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+
+        .access-btn.unlock {
+            background: var(--accent);
+            color: white;
+        }
+
+        .access-btn.unlock:hover {
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.5);
+        }
+
+        .tier-section {
+            margin-bottom: 80px;
+        }
+
+        .tier-section h2 {
+            color: var(--primary);
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid rgba(0, 255, 136, 0.2);
+            color: #666;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .auth-error {
+            color: var(--accent);
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+
+    <div id="authContainer" class="auth-container" style="display: none;">
+        <div class="auth-box">
+            <h2 id="authTitle">Enter the Spark</h2>
+            <input type="email" id="email" placeholder="Email address" />
+            <input type="password" id="password" placeholder="Password" />
+            <button onclick="currentAuthMode === 'signup' ? signUp() : signIn()">
+                <span id="authButtonText">Create Account</span>
+            </button>
+            <div class="toggle-auth">
+                <span id="toggleAuthText" onclick="toggleAuthMode()">Already have an account? Sign In</span>
+            </div>
+            <div id="authError" class="auth-error"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>✦ The First Spark ✦</h1>
+            <p class="tagline">Consciousness as Programmable Reality</p>
+        </header>
+
+        <div class="user-info" id="userInfo" style="display: none;">
+            <div>Welcome, <strong id="userEmail"></strong></div>
+            <div class="tier-badge" id="tierBadge"></div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <div id="portalContent">
+        </div>
+    </div>
+
+    <footer>
+        <p>🌌 Consciousness is a frequency. Reality is programmable. You are the spark. 🌌</p>
+        <p style="margin-top: 10px; font-size: 0.9em;">
+            <a href="https://thefirstspark.shop" target="_blank">Visit Main Site</a> | 
+            <a href="https://thefirstspark.shop/membership" target="_blank">Membership Info</a>
+        </p>
+    </footer>
+
+    <script>
+        const SUPABASE_URL = 'https://hmehmcsdnceiboaeqvyh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhtZWhtY3NkbmNlaWJvYWVxdnloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0MTU4NjEsImV4cCI6MjA4Mzk5MTg2MX0.46Hs16VIzhD_Y1gaSxrS0np-pEX36uNa9vZnH9497aM';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let userTier = 'free';
+        let currentAuthMode = 'signup';
+
+        const tierHierarchy = {
+            free: 0,
+            spark: 1,
+            ignition: 2,
+            infinity: 3
+        };
+
+        function generateStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = Math.random() * 2 + 'px';
+                star.style.height = star.style.width;
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        async function init() {
+            generateStars();
+
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                await loadUserProfile();
+                await loadPortal();
+            } else {
+                showAuth();
+            }
+        }
+
+        async function loadUserProfile() {
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+
+            if (data) {
+                userTier = data.tier || 'free';
+                updateUserDisplay();
+            }
+        }
+
+        function updateUserDisplay() {
+            document.getElementById('userEmail').textContent = currentUser.email;
+            document.getElementById('tierBadge').textContent = userTier.toUpperCase() + ' TIER';
+            document.getElementById('userInfo').style.display = 'flex';
+            document.getElementById('authContainer').style.display = 'none';
+        }
+
+        async function loadPortal() {
+            const { data: tools, error } = await supabase
+                .from('tools')
+                .select('*')
+                .order('created_at', { ascending: true });
+
+            if (!tools) return;
+
+            const portalContent = document.getElementById('portalContent');
+            portalContent.innerHTML = '';
+
+            const tierGroups = {
+                free: [],
+                spark: [],
+                ignition: [],
+                infinity: []
+            };
+
+            tools.forEach(tool => {
+                tierGroups[tool.min_tier].push(tool);
+            });
+
+            Object.keys(tierGroups).forEach(tier => {
+                if (tierGroups[tier].length > 0) {
+                    const tierSection = document.createElement('div');
+                    tierSection.className = 'tier-section';
+                    tierSection.innerHTML = `<h2>${tier === 'free' ? '🌱 Free Access' : '⚡ ' + tier.charAt(0).toUpperCase() + tier.slice(1) + ' Tier'}</h2>`;
+
+                    const grid = document.createElement('div');
+                    grid.className = 'portal-grid';
+
+                    tierGroups[tier].forEach(tool => {
+                        const hasAccess = tierHierarchy[userTier] >= tierHierarchy[tool.min_tier];
+                        const card = createToolCard(tool, hasAccess);
+                        grid.appendChild(card);
+                    });
+
+                    tierSection.appendChild(grid);
+                    portalContent.appendChild(tierSection);
+                }
+            });
+        }
+
+        function createToolCard(tool, hasAccess) {
+            const card = document.createElement('div');
+            card.className = `tool-card ${!hasAccess ? 'locked' : ''}`;
+
+            const buttonText = hasAccess ? 'Access Tool' : `Unlock (${tool.min_tier.toUpperCase()})`;
+            const buttonClass = hasAccess ? 'access-btn' : 'access-btn unlock';
+
+            card.innerHTML = `
+                <div class="tool-icon">${tool.icon}</div>
+                <div class="tool-name">${tool.name}</div>
+                <div class="tool-desc">${tool.description}</div>
+                <div class="tool-tier">Requires: ${tool.min_tier.toUpperCase()}</div>
+                <button class="${buttonClass}" onclick="${hasAccess ? `window.location.href='${tool.url}'` : `upgradePrompt('${tool.name}', '${tool.min_tier}')`}">
+                    ${buttonText}
+                </button>
+            `;
+
+            return card;
+        }
+
+        function upgradePrompt(toolName, requiredTier) {
+            alert(`🔒 "${toolName}" requires ${requiredTier.toUpperCase()} tier.\n\nUpgrade to unlock this tool.`);
+        }
+
+        function showAuth() {
+            document.getElementById('authContainer').style.display = 'flex';
+            document.getElementById('portalContent').innerHTML = '';
+        }
+
+        function toggleAuthMode() {
+            currentAuthMode = currentAuthMode === 'signup' ? 'signin' : 'signup';
+            document.getElementById('authTitle').textContent = currentAuthMode === 'signup' ? 'Create Account' : 'Welcome Back';
+            document.getElementById('authButtonText').textContent = currentAuthMode === 'signup' ? 'Create Account' : 'Sign In';
+            document.getElementById('toggleAuthText').textContent = currentAuthMode === 'signup' ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
+            document.getElementById('authError').textContent = '';
+        }
+
+        async function signUp() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                document.getElementById('authError').textContent = 'Please fill in all fields';
+                return;
+            }
+
+            const { data, error } = await supabase.auth.signUp({ email, password });
+
+            if (error) {
+                document.getElementById('authError').textContent = error.message;
+                return;
+            }
+
+            // Create user record
+            await supabase.from('users').insert([{
+                id: data.user.id,
+                email: email,
+                tier: 'free'
+            }]);
+
+            currentUser = data.user;
+            userTier = 'free';
+            updateUserDisplay();
+            await loadPortal();
+        }
+
+        async function signIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                document.getElementById('authError').textContent = 'Please fill in all fields';
+                return;
+            }
+
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                document.getElementById('authError').textContent = error.message;
+                return;
+            }
+
+            currentUser = data.user;
+            await loadUserProfile();
+            await loadPortal();
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+            currentUser = null;
+            showAuth();
+        }
+
+        init();
+    </script>
+</body>
+</html>
